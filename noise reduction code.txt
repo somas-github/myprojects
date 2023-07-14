@@ -1,0 +1,154 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include<time.h>
+#include<unistd.h>
+void findchannel();
+int i,j,sample_rate=44100;
+float freq;
+int choice;
+
+void performNoiseCancellation(float* audioData, float* antinoise, int n) {
+    for (int i = 0; i < n; i++) {
+       audioData[i] += antinoise[i];
+    }
+}
+void performAntinoiseCal(float *noiseData,float *antinoise, int n){
+    for(int i=0; i<n; i++)
+    {
+        antinoise[i]-=noiseData[i];
+    }
+}
+
+int main() {
+    
+   printf("sample rate:%dHz\n",sample_rate);    
+   float audioData[10], noiseData[10], antinoise[10],compression[10],rarefaction[10];
+   int n;
+   printf("Enter the number of samples:\n");
+   scanf("%d",&n);
+   printf("The audio samples:\n");
+   for(int i=0; i<n; i++)
+   {
+      scanf("%f",&audioData[i]); 
+   }
+   printf("\n");
+   printf("The noise samples:\n");
+   for(int i=0; i<n; i++)
+   {
+       scanf("%f",&noiseData[i]);
+   }
+   printf("compressions in noise signals:\n");
+   for(int i=0;i<n;i++)
+   {
+       if(i%2==0)
+       {
+           printf("%.2f ",noiseData[i]);
+           compression[i]=noiseData[i];
+       }
+   }
+   printf("\n");
+   printf("rarefactions in noise signals:\n");
+   for(int i=0;i<n;i++)
+   {
+       if(i%2!=0)
+       {
+           printf("%.2f ",noiseData[i]);
+           rarefaction[i]=noiseData[i];
+           
+       }
+   }
+     
+   printf("\n\n");
+   printf("The antinoise from microphone:\n");
+   for(i=0; i<n; i++)
+   {
+       scanf("%f",&antinoise[i]);
+   }
+   printf("compressions in antinoise signals:\n");
+   for(i=0;i<n;i++)
+   {
+       if(i%2!=0)
+       {
+           printf("%.2f ",antinoise[i]);
+           compression[i]=antinoise[i];
+       }
+   }
+   printf("\n");
+   
+   printf("rarefactions in antinoise signals:\n");
+   for(i=0;i<n;i++)
+   {
+       if(i%2==0)
+       {
+           printf("%.2f ",antinoise[i]);
+           rarefaction[i]=antinoise[i];
+       }
+   }
+
+  printf("\n");
+  int flag;
+  for(int i=0;i<n;i++)
+  {
+      if(noiseData[i]!=antinoise[i])
+         {
+             printf("audio has some noise!\n");
+             performAntinoiseCal(noiseData, antinoise, n);
+             performNoiseCancellation(audioData, antinoise, n);
+             printf("Noise-cancelled audio data:\n");
+                for (int i = 0; i < n; i++) 
+                    {
+                         printf("%.2f ", audioData[i]);
+                    }
+                    printf("\n");
+            scanf("%d",&choice);
+                 if(choice)
+                      {
+                        findchannel();
+                        return 0;
+                      }        
+        } 
+  
+       else
+            {
+                flag=1; 
+            }
+  }
+  
+  
+  
+  if(flag==1)
+  {
+      printf("noiseless music!\n");
+  }
+  scanf("%d",&choice);
+  if(choice)
+  findchannel();
+  return 0;
+}
+void findchannel()
+    {
+        printf("The frequency of the buds is:\n");
+        scanf("%f",&freq);
+        if((freq>=2.4)&&(freq<=2.4835))
+        {
+            
+           srand(time(NULL));
+           int randomNumber = rand() % 80;
+           printf("channel: \n%d\n", randomNumber);
+           while(1)
+           {
+               int randomNumber = rand() % 80;
+               printf("%d\n", randomNumber);
+               sleep(1);
+           }
+           
+        }
+        else
+        {
+            printf("out of range!");
+        }
+    }
+       
+
+
+
