@@ -1,0 +1,105 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.4;
+ contract productPurchase{
+        uint public price;
+        address payable public seller;
+        address payable public buyer;
+
+        enum Status{
+            created,
+            locked,
+            release,
+            inactive,
+            shipped,
+            accepted,
+            rejected,
+            cancel
+        }
+
+        Status public status;
+        constructor() payable{
+            seller = payable(msg.sender);
+            price = (msg.value)/2;
+        }
+        /// only the buyer can call this function
+        error OnlyBuyer();
+
+        modifier onlyBuyer(){
+            if(msg.sender != buyer){
+            revert OnlyBuyer();
+            }
+            _;
+        }
+        error OnlySeller();
+
+        modifier onlyseller(){
+            if(msg.sender != seller){
+            revert OnlySeller();
+            }
+            _;
+        }
+
+
+        function confirmpurchase() external payable{
+          require(status == Status.created);
+          status = Status.locked;
+          require(msg.value == 2 * price,"send 2 times the product value");
+          buyer=payable(msg.sender);
+        }
+
+        function confirmrecieved() external onlyBuyer returns(string memory){
+        require(status == Status.shipped);
+        status=Status.release;
+        buyer.transfer(price);
+        return "order recieved";
+
+        }
+
+        function payseller() external onlyseller returns (string memory){
+            require(status==Status.accepted);
+            seller.transfer(3*(price));
+            return "seller recieved the amount";
+
+        } 
+
+
+        function ship() external onlyseller() returns(string memory){
+            require(status==Status.locked);
+            status=Status.shipped;
+            return "your order is shipped";
+        }
+
+        function accept() external onlyBuyer returns(string memory){
+            require(status==Status.release);
+            status=Status.accepted;
+            return "accepted the order";
+        }
+
+        function reject() external onlyBuyer returns(string memory){
+            require(status==Status.release);
+            status= Status.rejected;
+            return "product is damaged";
+        }
+         function cancelled() external onlyseller returns(string memory){
+             require(status==Status.locked);
+             status=Status.cancel;
+             return "sorry! your order is cancelled due to some reasons";
+         }
+         function paybuyer() external onlyBuyer{
+             require(status==Status.cancel);
+             status=Status.inactive;
+             buyer.transfer(2*price);
+         }
+
+         mapping (address => uint) public amount;
+          function selleramount() public onlyseller {
+              amount[msg.sender]=address(this).balance;  
+          }
+          mapping (address => uint) public amount2;
+          function buyeramount() public onlyBuyer{
+              amount2[msg.sender]=address(this).balance;    
+
+       
+          }
+
+ }
